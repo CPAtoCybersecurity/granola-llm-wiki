@@ -1,0 +1,22 @@
+# --- secrets: NEVER commit ---
+.env
+.env.local
+*.key
+*.pem
+secrets/
+
+# macOS
+.DS_Store
+
+# bun / node
+node_modules/
+bun.lockb
+
+# Obsidian workspace cruft (per-machine state)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.trash/
+
+# NOTE: raw/transcripts/ IS tracked in this DEMO repo because the transcripts
+# are fictional sample data. If you fork this to use with your REAL Granola
+# account, keep the fork PRIVATE — real transcripts are sensitive.

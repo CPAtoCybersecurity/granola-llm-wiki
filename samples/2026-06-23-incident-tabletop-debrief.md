@@ -1,0 +1,101 @@
+> **Fictional sample data.** This transcript was written for training/demo purposes. Coastal Ridge Insurance and all attendees are invented.
+
+# Incident Tabletop Debrief
+
+- **Date:** 2026-06-23
+- **Granola ID:** demo-2026-06-23-tabletop-debrief
+- **Attendees:** Dana Whitfield, Omar Haddad, Jess Park
+
+---
+
+**Dana Whitfield:** Okay, this is the debrief for Thursday's tabletop. Just the three of us — I wanted the candid version before we write anything up for leadership.
+
+**Omar Haddad:** The candid version. So we can say it didn't go great.
+
+**Dana Whitfield:** We can say exactly that, in this room. For the record and for Jess's notes: the scenario was a phishing-to-BEC chain — business email compromise. Walk us through the injects, Jess, since you ran the scenario.
+
+**Jess Park:** Sure. Inject one: an accounts-payable clerk gets a convincing phishing email, enters credentials on a fake login page. Inject two: the attacker sits in the mailbox for two weeks, reads the vendor payment threads, learns the rhythm. Inject three: the attacker sends a bank-account change request that looks like it's from a real vendor, timed right before a scheduled payment of about $180,000.
+
+**Omar Haddad:** And inject four was the near-miss wire, which is where things got educational.
+
+**Dana Whitfield:** Educational is generous. Let's do what worked first, though — I don't want a purely grim debrief.
+
+**Jess Park:** Fair. What worked: the phishing report came in fast once a second employee got the same lure — under ten minutes to the security inbox. And Omar's team had the compromised mailbox isolated within the hour in scenario time.
+
+**Omar Haddad:** Mailbox containment is drilled. That part I never worried about.
+
+**Dana Whitfield:** Agreed, detection and containment held up. Now the part that kept me up Thursday night. The wire.
+
+**Jess Park:** So, in the scenario, the payment clerk gets the bank-change request and — correctly! — feels something is off. The clerk asks, 'what's our verification procedure for a bank account change?' And the room went quiet.
+
+**Omar Haddad:** The room went quiet because the answer is: there is a callback verification procedure, and it exists entirely in the AP supervisor's head. One person. It's never been written down. She was on vacation in the scenario — which Jess did on purpose, and I want that noted as psychological warfare.
+
+**Jess Park:** It's called an inject, and it's a classic for a reason.
+
+**Dana Whitfield:** And it worked, because without her, the team improvised. Half the room said call the vendor on the number in the email — which is the attacker's number, obviously. That's the whole trick.
+
+**Omar Haddad:** Yeah, one participant caught it — call the number we have on file from before the change request, never the one in the email. But that was one person catching it, not a procedure catching it.
+
+**Dana Whitfield:** That's finding number one, stated plainly: the wire-transfer callback verification procedure is undocumented — it lives in one person's head, and the organization can't execute it when that person is out.
+
+**Jess Park:** Logged. Finding two came out of the escalation phase. When the team decided to notify the bank and get contact numbers, they pulled up the emergency contact list — and it was last updated 14 months ago.
+
+**Omar Haddad:** Fourteen months. The bank contact on it left the bank. Our own after-hours number for the previous IT on-call rotation was on there. If this had been real and after hours, we'd have been dialing dead numbers while a wire processed.
+
+**Dana Whitfield:** Fourteen months is the number that goes in the report, verbatim. It's embarrassing and it should be — embarrassment is what gets review cadences funded.
+
+**Jess Park:** So, two findings: undocumented callback procedure, stale emergency contact list. Do we want to talk fixes now or save it for the report?
+
+**Dana Whitfield:** Now. This meeting is where the decisions happen; the report just records them.
+
+**Omar Haddad:** Then let me open with the control I've wanted for a year: dual approval on large wire transfers. One person can be rushed, fooled, or on vacation. Two people, independently approving, is how you beat a BEC that's already inside the mailbox.
+
+**Dana Whitfield:** Agreed in principle. Where's the threshold? If it's every wire, finance will revolt and then quietly stop complying, which is worse than no control.
+
+**Jess Park:** I pulled the payment data before this meeting anticipating exactly this argument. If we set the threshold at $25,000 CAD, dual approval touches roughly the top fifteen percent of wires by count but over ninety percent by dollar value. Below that, the blast radius of a single fraudulent wire is survivable.
+
+**Omar Haddad:** That's a well-armed number. I'll take it.
+
+**Dana Whitfield:** Decision one, then: dual approval required for wire transfers over $25,000 CAD. I'll walk it over to the finance director personally — this lands better in person than in a policy diff.
+
+**Jess Park:** Noted with the threshold and the rationale. Decision two — the contact list?
+
+**Dana Whitfield:** Decision two: the emergency contact list gets reviewed quarterly. Owned, calendared, verified — someone actually dials the numbers, not just eyeballs the page.
+
+**Omar Haddad:** The dialing part matters. A read-through would have passed that list; it looked fine. It was only wrong when you called it.
+
+**Jess Park:** Quarterly review, verification by actual contact. Logged. Now the actions — who's writing what?
+
+**Omar Haddad:** I'll take the callback procedure. I'll sit with the AP supervisor this week — she's back Monday — and get what's in her head into a documented, step-by-step procedure. Callback to the number on file predating the change request, never the number in the email, mandatory wait period on any bank-detail change, the works.
+
+**Dana Whitfield:** Get it peer-reviewed by someone who's never done a callback. If they can execute it cold, it's documented. That's the test.
+
+**Omar Haddad:** Good test. First draft by Friday.
+
+**Jess Park:** And I'll take the risk register. Both findings go in — the undocumented callback procedure and the stale contact list — each with the decision that addresses it and a target date. That also gives us the before-and-after story for the next board risk report.
+
+**Dana Whitfield:** Perfect. Anything else from the exercise worth surfacing while we're candid?
+
+**Jess Park:** One observation, not a finding: the team's instinct under pressure was to email each other. Even in the scenario where email was the compromised channel. Nobody moved to the phone bridge until prompted.
+
+**Omar Haddad:** That one's cultural. Ten years of email being the office nervous system doesn't unwind in a tabletop.
+
+**Dana Whitfield:** Park it as an observation for the next exercise — maybe we make the whole email system 'unavailable' in the next scenario and watch the room panic productively.
+
+**Jess Park:** You're getting a taste for the psychological warfare thing.
+
+**Dana Whitfield:** Jess, I learned from watching you. Okay — recap for the record. Scenario: phishing-to-BEC, near-miss on a fraudulent wire. Findings: the wire-transfer callback verification procedure exists only in one person's head, and the emergency contact list was 14 months stale. Decisions: dual approval for wire transfers over $25,000 CAD, and quarterly review of the emergency contact list with dial-through verification. Actions: Omar documents the callback procedure with the AP supervisor, first draft Friday. Jess adds both findings to the risk register with owners and dates.
+
+**Omar Haddad:** And you charm the finance director.
+
+**Dana Whitfield:** And I charm the finance director, which is technically also a documented procedure now. Overall — an uncomfortable tabletop, which means a useful one. Rather find these gaps on a Thursday afternoon with coffee than at eleven p.m. with a real wire pending.
+
+**Jess Park:** I'll circulate the debrief summary tomorrow for your review before it goes to leadership. Sam asked to read it too, by the way — apparently tabletop stories are the intern equivalent of campfire tales.
+
+**Dana Whitfield:** Good, send it along — nothing sensitive in the summary version, and it's exactly the kind of thing an intern should see early.
+
+**Omar Haddad:** Just redact the part where half the room tried to call the attacker's phone number. Actually — no, leave that in. That's the lesson.
+
+**Omar Haddad:** Ping me when it's up. I want the fourteen-months line to land with appropriate horror.
+
+**Dana Whitfield:** It will. Thanks, both — genuinely good work Thursday. The exercise did its job because you two built it to hurt in the right places.
