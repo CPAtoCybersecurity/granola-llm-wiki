@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1200" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="26" font-weight="700" fill="#1f2328">The environment slot as a bridge: a Bitwarden session</text>
+  <text x="1160" y="34" font-size="14" fill="#6e7781" text-anchor="end">Rendering – not a screenshot, no real key</text>
+
+  <!-- terminal -->
+  <rect x="40" y="80" width="1120" height="290" rx="12" fill="#0d1117"/>
+  <circle cx="72" cy="108" r="7" fill="#ff5f57"/>
+  <circle cx="96" cy="108" r="7" fill="#febc2e"/>
+  <circle cx="120" cy="108" r="7" fill="#28c840"/>
+  <text x="600" y="113" font-size="13" fill="#8b949e" text-anchor="middle">Terminal</text>
+
+  <g font-family="Menlo, Consolas, monospace" font-size="16.5">
+    <text x="72" y="158"><tspan fill="#3fb950">$</tspan><tspan fill="#e6edf3"> export BW_SESSION="$(bw unlock --raw)"</tspan></text>
+    <text x="72" y="192"><tspan fill="#8b949e">? Master password: [hidden]</tspan></text>
+    <text x="72" y="244"><tspan fill="#3fb950">$</tspan><tspan fill="#e6edf3"> GRANOLA_API_KEY="$(bw get password Granola)" bun tools/granola-fetch.ts check</tspan></text>
+    <text x="72" y="298"><tspan fill="#3fb950">$</tspan><tspan fill="#e6edf3"> bw lock</tspan></text>
+    <text x="72" y="332"><tspan fill="#8b949e">Your vault is locked.</tspan></text>
+  </g>
+  <text x="740" y="272" font-size="14" fill="#febc2e">&#8593; the key exists only inside this one process's</text>
+  <text x="740" y="292" font-size="14" fill="#febc2e">   environment, for one process lifetime</text>
+
+  <rect x="40" y="394" width="1120" height="72" rx="8" fill="#fbefff" stroke="#8250df"/>
+  <text x="66" y="420" font-size="14.5" fill="#1f2328" font-weight="600">Why this is history-safe: the shell records the literal <tspan font-family="Menlo, Consolas, monospace">$(bw get password Granola)</tspan> text, never the expanded key.</text>
+  <text x="66" y="444" font-size="14.5" fill="#57606a">Nothing lands on disk. Works on any platform, including self-hosted servers. Unlock first – a locked vault yields an empty string and the tool falls through.</text>
+</svg>

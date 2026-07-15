@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1200" height="470" fill="#ffffff"/>
+  <text x="40" y="46" font-size="26" font-weight="700" fill="#1f2328">How the tool finds the key – first hit wins</text>
+  <text x="1160" y="34" font-size="14" fill="#6e7781" text-anchor="end">Diagram – not an app screenshot</text>
+
+  <!-- tool box -->
+  <rect x="40" y="80" width="200" height="96" rx="10" fill="#f6f8fa" stroke="#d0d7de" stroke-width="2"/>
+  <text x="140" y="118" font-size="17" font-weight="600" fill="#1f2328" text-anchor="middle">granola-fetch.ts</text>
+  <text x="140" y="144" font-size="14" fill="#57606a" text-anchor="middle">needs the key at runtime</text>
+  <line x1="240" y1="128" x2="292" y2="128" stroke="#8c959f" stroke-width="2.5"/>
+  <path d="M292,128 l-10,-6 v12 z" fill="#8c959f"/>
+
+  <!-- store 1 -->
+  <rect x="300" y="80" width="260" height="96" rx="10" fill="#dafbe1" stroke="#2da44e" stroke-width="2.5"/>
+  <rect x="316" y="66" width="130" height="28" rx="14" fill="#2da44e"/>
+  <text x="381" y="85" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">1 · preferred</text>
+  <text x="430" y="116" font-size="17" font-weight="600" fill="#1f2328" text-anchor="middle">1Password CLI</text>
+  <text x="430" y="140" font-size="12.5" font-family="Menlo, Consolas, monospace" fill="#57606a" text-anchor="middle">op://Private/Granola/credential</text>
+  <text x="430" y="162" font-size="13" fill="#2da44e" text-anchor="middle" font-weight="600">nothing on disk</text>
+  <line x1="560" y1="128" x2="612" y2="128" stroke="#8c959f" stroke-width="2.5"/>
+  <path d="M612,128 l-10,-6 v12 z" fill="#8c959f"/>
+  <text x="586" y="108" font-size="12" fill="#8c959f" text-anchor="middle">not found</text>
+
+  <!-- store 2 -->
+  <rect x="620" y="80" width="250" height="96" rx="10" fill="#ddf4ff" stroke="#0969da" stroke-width="2.5"/>
+  <rect x="636" y="66" width="46" height="28" rx="14" fill="#0969da"/>
+  <text x="659" y="85" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="745" y="120" font-size="17" font-weight="600" fill="#1f2328" text-anchor="middle">macOS Keychain</text>
+  <text x="745" y="146" font-size="13.5" font-family="Menlo, Consolas, monospace" fill="#57606a" text-anchor="middle">security find-generic-password</text>
+  <text x="745" y="166" font-size="13" fill="#0969da" text-anchor="middle" font-weight="600">encrypted at rest, local</text>
+  <line x1="870" y1="128" x2="922" y2="128" stroke="#8c959f" stroke-width="2.5"/>
+  <path d="M922,128 l-10,-6 v12 z" fill="#8c959f"/>
+  <text x="896" y="108" font-size="12" fill="#8c959f" text-anchor="middle">not found</text>
+
+  <!-- store 3 -->
+  <rect x="930" y="80" width="230" height="96" rx="10" fill="#fff8c5" stroke="#bf8700" stroke-width="2.5"/>
+  <rect x="946" y="66" width="46" height="28" rx="14" fill="#bf8700"/>
+  <text x="969" y="85" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="1045" y="120" font-size="17" font-weight="600" fill="#1f2328" text-anchor="middle">Environment slot</text>
+  <text x="1045" y="146" font-size="13.5" font-family="Menlo, Consolas, monospace" fill="#57606a" text-anchor="middle">GRANOLA_API_KEY · .env</text>
+  <text x="1045" y="166" font-size="13" fill="#9a6700" text-anchor="middle" font-weight="600">.env = last resort</text>
+
+  <!-- bridge -->
+  <rect x="700" y="270" width="460" height="86" rx="10" fill="#fbefff" stroke="#8250df" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="930" y="304" font-size="16.5" font-weight="600" fill="#1f2328" text-anchor="middle">Bitwarden CLI (or any secret manager)</text>
+  <text x="930" y="330" font-size="13.5" font-family="Menlo, Consolas, monospace" fill="#57606a" text-anchor="middle">GRANOLA_API_KEY="$(bw get password Granola)" bun ...</text>
+  <path d="M1045,270 L1045,186" stroke="#8250df" stroke-width="2.5" stroke-dasharray="7 5" fill="none"/>
+  <path d="M1045,186 l-7,11 h14 z" fill="#8250df"/>
+  <text x="1032" y="232" font-size="13" fill="#8250df" text-anchor="end" font-weight="600">injects per-invocation,</text>
+  <text x="1032" y="250" font-size="13" fill="#8250df" text-anchor="end" font-weight="600">nothing lands on disk</text>
+
+  <!-- footer rule -->
+  <rect x="40" y="398" width="1120" height="44" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="600" y="426" font-size="15" fill="#1f2328" text-anchor="middle">One rule spans every option: the key is pasted into the manager's app, never typed into a terminal command (argv is visible to ps and shell history).</text>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1200" height="440" fill="#ffffff"/>
+  <text x="40" y="46" font-size="26" font-weight="700" fill="#1f2328">macOS Keychain: store once, prompt hides the paste</text>
+  <text x="1160" y="34" font-size="14" fill="#6e7781" text-anchor="end">Rendering of the exact commands – not a screenshot, no real key</text>
+
+  <!-- terminal -->
+  <rect x="40" y="80" width="1120" height="240" rx="12" fill="#0d1117"/>
+  <circle cx="72" cy="108" r="7" fill="#ff5f57"/>
+  <circle cx="96" cy="108" r="7" fill="#febc2e"/>
+  <circle cx="120" cy="108" r="7" fill="#28c840"/>
+  <text x="600" y="113" font-size="13" fill="#8b949e" text-anchor="middle">Terminal</text>
+
+  <g font-family="Menlo, Consolas, monospace" font-size="16.5">
+    <text x="72" y="156"><tspan fill="#3fb950">$</tspan><tspan fill="#e6edf3"> security add-generic-password -a "$USER" -s granola-api-key -w</tspan></text>
+    <text x="72" y="192"><tspan fill="#8b949e">password data for new item: </tspan><tspan fill="#e6edf3">&#9608;</tspan></text>
+    <text x="72" y="228"><tspan fill="#8b949e">retype password for new item: </tspan><tspan fill="#e6edf3">&#9608;</tspan></text>
+    <text x="72" y="282"><tspan fill="#3fb950">$</tspan><tspan fill="#e6edf3"> bun tools/granola-fetch.ts check</tspan></text>
+  </g>
+  <text x="700" y="192" font-size="14" fill="#febc2e" font-family="-apple-system, 'Segoe UI', sans-serif">&#8592; -w with no value prompts; the paste is hidden,</text>
+  <text x="700" y="212" font-size="14" fill="#febc2e" font-family="-apple-system, 'Segoe UI', sans-serif">   so the key never enters argv or shell history</text>
+
+  <rect x="40" y="344" width="1120" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="66" y="368" font-size="14.5" fill="#1f2328">The tool reads it back itself with <tspan font-family="Menlo, Consolas, monospace">security find-generic-password -a "$USER" -s granola-api-key -w</tspan> – you never run that by hand,</text>
+  <text x="66" y="388" font-size="14.5" fill="#1f2328">because its output IS the key. Encrypted at rest, local to this Mac only – no central rotation or audit like 1Password.</text>
+</svg>

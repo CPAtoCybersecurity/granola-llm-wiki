@@ -327,7 +327,7 @@ why and how.
 - `wiki/` – the wiki (Obsidian vault): `Meetings/` → `Projects/ Areas/ Resources/ Archive/ People/`
 - `wiki/index.md` – catalog · `wiki/log.md` – operation timeline
 - `tools/granola-fetch.ts` – secure fetch (1Password CLI → Keychain → .env) + sample mode
-- `docs/` – README images
+- `docs/` – images for this README and SECURITY.md (`docs/src/` holds the figure sources)
 - `CLAUDE.md` – **the schema the LLM follows every session** (start there)
 - `SECURITY.md` – key management policy, rotation, leak runbook
 

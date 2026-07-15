@@ -31,15 +31,19 @@ it in the repo. Resolution order:
 
 | Priority | Store | Why |
 |----------|-------|-----|
-| 1 | **1Password CLI** (`op read op://Private/Granola/credential`) | Nothing on disk. Central rotation, revocation, and audit. Same reference works on every machine. |
-| 2 | **macOS Keychain** (`security find-generic-password`) | Encrypted at rest, local to the machine. Good fallback without a 1Password account. |
-| 3 | **Environment / `.env`** | Last resort as a *store* (plaintext on disk) – but the environment slot is also the **bridge for other key managers**: anything that can resolve a secret can inject it per-invocation (see Bitwarden setup below). |
+| 1 | **[1Password CLI](https://developer.1password.com/docs/cli/get-started/)** (`op read op://Private/Granola/credential` – [secret reference syntax](https://developer.1password.com/docs/cli/secret-references/)) · [setup](#1password-setup) | Nothing on disk. Central rotation, revocation, and audit. Same reference works on every machine. |
+| 2 | **[macOS Keychain](https://support.apple.com/guide/keychain-access/welcome/mac)** (`security find-generic-password`) · [setup](#macos-keychain-setup) | Encrypted at rest, local to the machine. Good fallback without a 1Password account. |
+| 3 | **Environment / [`.env`](.env.example)** | Last resort as a *store* (plaintext on disk) – but the environment slot is also the **bridge for other key managers** like the [Bitwarden CLI](https://bitwarden.com/help/cli/): anything that can resolve a secret can inject it per-invocation · [setup](#bitwarden-setup) |
+
+![Resolution order: the tool tries 1Password CLI first, then macOS Keychain, then the environment slot and .env; Bitwarden or any secret manager bridges in through the environment slot](docs/key-resolution-order.png)
 
 One rule spans every option: the key is pasted **into the manager's app or web
 vault**, never typed into a terminal command. Anything in argv is visible to
 `ps` while the command runs and lands in shell history forever.
 
 ### 1Password setup
+
+![The 1Password item decomposed into the secret reference: vault Private, item Granola, field credential map to op://Private/Granola/credential](docs/key-1password.png)
 
 ```
 # 1. Install the CLI and wire it to the desktop app (one time)
@@ -64,12 +68,32 @@ The secret reference is configurable: set `GRANOLA_OP_REF=op://<vault>/<item>/<f
 An alternative pattern for whole environments is `op run --env-file=.env.op -- <command>`,
 which injects resolved secrets into a subprocess without ever writing them out.
 
+### macOS Keychain setup
+
+No 1Password account? The Mac's built-in Keychain
+([Keychain Access guide](https://support.apple.com/guide/keychain-access/welcome/mac))
+stores the key encrypted at rest, local to this machine:
+
+![macOS Keychain: security add-generic-password with -w prompts for the secret at a hidden prompt, keeping the key out of argv and shell history](docs/key-keychain.png)
+
+```
+security add-generic-password -a "$USER" -s granola-api-key -w
+```
+
+`-w` with no value prompts for the secret – paste at the hidden prompt, so the
+key never enters argv or shell history. The tool reads it back itself (service
+name configurable via `GRANOLA_KEYCHAIN_SERVICE`); verify with
+`bun tools/granola-fetch.ts check`. What you give up versus 1Password: central
+rotation, revocation, and audit – the key lives on this one machine.
+
 ### Bitwarden setup
 
 The tool has no native Bitwarden reader – Bitwarden rides the chain's environment
 slot (priority 3): the CLI resolves the key at runtime and injects it into the one
 process that needs it. Nothing lands on disk, and it works on any platform,
 including self-hosted servers.
+
+![A Bitwarden session bridging the environment slot: bw unlock, per-invocation GRANOLA_API_KEY injection, bw lock](docs/key-env-bridge.png)
 
 ```
 # 1. Install and sign in (one time)
