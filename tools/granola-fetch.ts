@@ -99,9 +99,14 @@ function resolveKey(): string {
   return k;
 }
 
-/** Strip anything that looks like the key from a string before it's ever shown. */
+/** Strip anything that looks like the key from a string before it's ever shown.
+ *  The length floor keeps a degenerate short value (e.g. a test placeholder) from
+ *  redacting every occurrence of a common substring; real keys are long. Deliberate
+ *  tradeoff: a value under 8 chars is NOT split-redacted (no valid Granola key is
+ *  that short); the grn_ pattern scrub below applies to anything key-shaped. */
 function redact(s: string, key: string): string {
-  return key ? s.split(key).join("grn_***REDACTED***").replace(/grn_[A-Za-z0-9_\-]{8,}/g, "grn_***REDACTED***") : s;
+  const scrubbed = key && key.length >= 8 ? s.split(key).join("grn_***REDACTED***") : s;
+  return scrubbed.replace(/grn_[A-Za-z0-9_\-]{8,}/g, "grn_***REDACTED***");
 }
 
 // --- sample mode (offline, zero credentials) ---------------------------------
@@ -145,9 +150,29 @@ function cmdSampleIngest(id: string) {
 
 async function api(path: string, key: string): Promise<any> {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+    });
+  } catch (e: any) {
+    const msg = String(e?.message ?? e);
+    if (/certificat|self.?signed|unable to verify|CERT_/i.test(msg)) {
+      throw new Error(
+        `${msg}\n` +
+        `If you're on a corporate/managed network, this often means TLS interception: the\n` +
+        `network re-signs HTTPS with your organization's root certificate, which bun does\n` +
+        `not trust by default (your browser does, because IT installed that root). Fix it\n` +
+        `by trusting that root, never by disabling verification:\n` +
+        `  bun --use-system-ca tools/granola-fetch.ts check          # use the OS trust store\n` +
+        `  NODE_EXTRA_CA_CERTS=/path/to/corp-root.pem bun tools/...  # or a PEM file with the root\n` +
+        `If you're NOT on a managed network, take the error at face value — the server's\n` +
+        `certificate may genuinely be expired, self-signed, or wrong. Do NOT set\n` +
+        `NODE_TLS_REJECT_UNAUTHORIZED=0 — that turns off TLS verification entirely.`,
+      );
+    }
+    throw e;
+  }
   if (!res.ok) {
     const body = redact(await res.text().catch(() => ""), key);
     let hint = "";

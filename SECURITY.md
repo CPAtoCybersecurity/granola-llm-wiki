@@ -119,6 +119,36 @@ Mapping note: rotation is the lifecycle parameter of PR.AA-01; the same practice
 touches PR.AA-05 (least-privilege access) and PR.DS-01 (protecting data at rest), and
 the rotation policy itself belongs to the governance function (GV).
 
+## Corporate networks: TLS interception
+
+On many corporate networks, a security gateway inspects HTTPS by re-signing it
+with the organization's own root certificate – a deliberate, policy-sanctioned
+man-in-the-middle. Your browser trusts it because IT installed that root in the
+operating system's trust store; bun ships its own bundled CA store and doesn't
+read the OS store by default, so the same request that works in a browser fails
+in this tool with a certificate error.
+
+The lesson mirrors the key-management one: **fix trust precisely, don't disable
+it.** Two right answers, one wrong one:
+
+```
+bun --use-system-ca tools/granola-fetch.ts check           # use the OS trust store
+NODE_EXTRA_CA_CERTS=/path/to/corp-root.pem bun tools/...   # or hand bun the root CA
+```
+
+Details that matter: `--use-system-ca` reads the platform trust store, so the
+organization's root must already be installed there (on managed macOS/Windows it
+is; on Linux, install it system-wide first, e.g. `update-ca-certificates`).
+`NODE_EXTRA_CA_CERTS` takes one absolute path to a PEM file, read at process
+start. And diagnose before trusting: a certificate error on a *non*-managed
+network usually means the server's certificate really is expired, self-signed,
+or wrong – adding trust is the fix for interception, not for a bad certificate.
+
+The wrong answer – `NODE_TLS_REJECT_UNAUTHORIZED=0` – is the top search result
+and turns off certificate verification for every connection the process makes.
+That converts a scoped, audited interception into blind trust of anyone on the
+path. Never ship it, never paste it into CI.
+
 ## If the key leaks
 
 If you ever see the key in output, a commit, a log, or a chat window:

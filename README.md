@@ -66,7 +66,7 @@ Then open the `wiki/` folder as an Obsidian vault and browse.
 
 ### Troubleshooting
 
-None of these are bugs – they're the three ways a fresh setup usually trips:
+None of these are bugs – they're the four ways a fresh setup usually trips:
 
 - **`bun: command not found`** – the installer added bun to your PATH, but your current
   terminal hasn't picked it up. Open a new terminal (or `source ~/.zshrc`) and check
@@ -79,6 +79,15 @@ None of these are bugs – they're the three ways a fresh setup usually trips:
 - **`usage: fetch --sample <id>`** – `fetch` needs a meeting id. Run
   `bun tools/granola-fetch.ts list --sample` first and copy the id it prints
   (`demo-2026-06-23-tabletop-debrief`) into the fetch command.
+- **`self signed certificate in certificate chain`** (or any certificate error,
+  usually on a work network) – your network inspects TLS: it re-signs HTTPS with
+  your organization's root certificate, which bun doesn't trust by default even
+  though your browser does. Trust the root instead of weakening TLS: run
+  `bun --use-system-ca tools/granola-fetch.ts check` (uses the OS trust store,
+  where IT installed the root) or set `NODE_EXTRA_CA_CERTS=/path/to/corp-root.pem`.
+  On a home network, take the error at face value instead – the certificate may
+  genuinely be bad. Never set `NODE_TLS_REJECT_UNAUTHORIZED=0` – that disables
+  verification for everything. More in [SECURITY.md](SECURITY.md).
 
 ## Guided tour (3 stops, ~5 minutes)
 
