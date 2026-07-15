@@ -51,8 +51,10 @@ a SOC 2 vendor review, and a shadow-AI cleanup.
 ## Quickstart (zero credentials)
 
 Prerequisites: [bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`) and,
-for the full experience, [Obsidian](https://obsidian.md). Note: `[[wikilinks]]` are
-clickable in Obsidian, not on GitHub's file viewer.
+for the full experience, [Obsidian](https://obsidian.md). If you just installed bun,
+open a new terminal (or `source ~/.zshrc`) and confirm with `bun --version` before
+continuing. Note: `[[wikilinks]]` are clickable in Obsidian, not on GitHub's file
+viewer.
 
 ```
 git clone https://github.com/CPAtoCybersecurity/granola-llm-wiki
@@ -61,6 +63,22 @@ bun tools/granola-fetch.ts list --sample
 ```
 
 Then open the `wiki/` folder as an Obsidian vault and browse.
+
+### Troubleshooting
+
+None of these are bugs – they're the three ways a fresh setup usually trips:
+
+- **`bun: command not found`** – the installer added bun to your PATH, but your current
+  terminal hasn't picked it up. Open a new terminal (or `source ~/.zshrc`) and check
+  `bun --version`. Still not found? Run the install one-liner above, then open a new
+  terminal.
+- **`Module not found "tools/granola-fetch.ts"`** – you're in the wrong directory. Run
+  `pwd` and confirm you're in the folder that contains `tools/` and `wiki/`. A classic
+  cause: cloning into a folder already named `granola-llm-wiki`, which nests the repo
+  one level down (`granola-llm-wiki/granola-llm-wiki`) – `cd` into the inner one.
+- **`usage: ingest --sample <id>`** – `ingest` needs a meeting id. Run
+  `bun tools/granola-fetch.ts list --sample` first and copy the id it prints
+  (`demo-2026-06-23-tabletop-debrief`) into the ingest command.
 
 ## Guided tour (3 stops, ~5 minutes)
 
@@ -76,7 +94,9 @@ Then open the `wiki/` folder as an Obsidian vault and browse.
 
 ## Now you try
 
-A fourth fictional meeting ships in `samples/`, deliberately not yet integrated:
+A fourth fictional meeting ships in `samples/`, deliberately not yet integrated. Run
+`bun tools/granola-fetch.ts list --sample` and copy the id it prints into the ingest
+command:
 
 ```
 bun tools/granola-fetch.ts ingest --sample demo-2026-06-23-tabletop-debrief
