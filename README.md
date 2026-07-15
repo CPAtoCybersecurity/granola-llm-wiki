@@ -111,16 +111,77 @@ whole idea.
 
 Do this in a **private fork** – real transcripts and People pages are sensitive.
 
-Store the API key (generated in the Granola desktop app) in order of preference:
+Generate the API key in the Granola desktop app, then store it in a key manager.
+One rule applies to every option: paste the key **into the manager's app or web
+vault**, never into a terminal command – anything in argv is visible to `ps` and
+lands in shell history. In order of preference:
 
-1. **1Password CLI** – create an item `Granola` with a `credential` field in your
-   `Private` vault. Check sign-in with `op whoami`. The tool reads
-   `op://Private/Granola/credential` automatically (override via `GRANOLA_OP_REF`).
-2. **macOS Keychain** – `security add-generic-password -a "$USER" -s granola-api-key -w`
-3. **`.env`** (gitignored, plaintext on disk – last resort) – see `.env.example`.
+### Option 1 – 1Password CLI (native, preferred)
 
-Verify with `bun tools/granola-fetch.ts check`, then `list` and `ingest <note_id>`.
-Rotate the key monthly; [SECURITY.md](SECURITY.md) explains why and how.
+The tool reads `op://Private/Granola/credential` automatically (override via
+`GRANOLA_OP_REF`).
+
+```
+# one-time: install the CLI and wire it to the desktop app
+brew install 1password-cli
+# 1Password app → Settings → Developer → turn on "Integrate with 1Password CLI"
+#   (optionally enable Touch ID there too)
+op whoami        # confirms sign-in – prompts via the app if needed
+
+# store: in the 1Password app, create an item "Granola" in vault "Private"
+# with a field named "credential", and paste the key into that field
+
+# verify – the tool resolves the key itself and never prints it
+bun tools/granola-fetch.ts check
+```
+
+Don't "test" with a bare `op read op://Private/Granola/credential` – that prints
+the key into your terminal and scrollback.
+
+### Option 2 – Bitwarden CLI (any platform, incl. self-hosted)
+
+The tool has no native Bitwarden reader – you inject the key per-invocation
+through its `GRANOLA_API_KEY` environment slot. Nothing lands on disk.
+
+```
+# one-time: install and sign in
+brew install bitwarden-cli
+bw config server https://vault.example.com   # self-hosted only – skip for bitwarden.com
+bw login                                     # email + master password (+ 2FA)
+
+# store: in the Bitwarden app or web vault, create a Login item named
+# "Granola" and paste the key into its password field
+
+# each session: unlock, run, lock
+export BW_SESSION="$(bw unlock --raw)"
+GRANOLA_API_KEY="$(bw get password Granola)" bun tools/granola-fetch.ts check
+bw lock
+```
+
+Optional convenience for your `~/.zshrc`. The single quotes are load-bearing:
+they defer the lookup, so the key is resolved fresh on every call and never
+touches disk. With double quotes the lookup would run once at shell startup and
+bake the key into your environment:
+
+```
+alias granola='GRANOLA_API_KEY="$(bw get password Granola)" bun tools/granola-fetch.ts'
+```
+
+### Option 3 – macOS Keychain (local fallback)
+
+```
+security add-generic-password -a "$USER" -s granola-api-key -w
+```
+
+(`-w` with no value prompts for the secret – paste at the hidden prompt.)
+
+### Option 4 – `.env` (last resort)
+
+Gitignored but plaintext on disk – see `.env.example`. Prefer any option above.
+
+Whichever store you use: verify with `bun tools/granola-fetch.ts check`, then
+`list` and `ingest <note_id>`. Rotate the key monthly; [SECURITY.md](SECURITY.md)
+explains why and how.
 
 ## Layout
 
