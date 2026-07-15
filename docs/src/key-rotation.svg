@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1200" height="600" fill="#ffffff"/>
+  <text x="40" y="46" font-size="26" font-weight="700" fill="#1f2328">Monthly rotation: one field edit, bounded exposure</text>
+  <text x="1160" y="34" font-size="14" fill="#6e7781" text-anchor="end">Diagram – not an app screenshot</text>
+
+  <!-- step 1 -->
+  <rect x="40" y="96" width="330" height="104" rx="10" fill="#dafbe1" stroke="#2da44e" stroke-width="2.5"/>
+  <rect x="56" y="82" width="46" height="28" rx="14" fill="#2da44e"/>
+  <text x="79" y="101" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="205" y="134" font-size="17" font-weight="600" fill="#1f2328" text-anchor="middle">Granola desktop app</text>
+  <text x="205" y="160" font-size="14.5" fill="#116329" text-anchor="middle" font-weight="600">generate a NEW key</text>
+  <text x="205" y="182" font-size="13" fill="#57606a" text-anchor="middle">old one keeps working – no downtime</text>
+  <line x1="370" y1="148" x2="418" y2="148" stroke="#8c959f" stroke-width="2.5"/>
+  <path d="M418,148 l-10,-6 v12 z" fill="#8c959f"/>
+
+  <!-- step 2 -->
+  <rect x="426" y="96" width="350" height="104" rx="10" fill="#ddf4ff" stroke="#0969da" stroke-width="2.5"/>
+  <rect x="442" y="82" width="46" height="28" rx="14" fill="#0969da"/>
+  <text x="465" y="101" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="601" y="134" font-size="17" font-weight="600" fill="#1f2328" text-anchor="middle">1Password / Bitwarden item</text>
+  <text x="601" y="160" font-size="14.5" fill="#0969da" text-anchor="middle" font-weight="600">paste the new key into the credential field</text>
+  <text x="601" y="182" font-size="13" fill="#57606a" text-anchor="middle">one field edit – every machine picks it up on next run</text>
+  <line x1="776" y1="148" x2="824" y2="148" stroke="#8c959f" stroke-width="2.5"/>
+  <path d="M824,148 l-10,-6 v12 z" fill="#8c959f"/>
+
+  <!-- step 3 -->
+  <rect x="832" y="96" width="328" height="104" rx="10" fill="#ffebe9" stroke="#cf222e" stroke-width="2.5"/>
+  <rect x="848" y="82" width="46" height="28" rx="14" fill="#cf222e"/>
+  <text x="871" y="101" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="996" y="134" font-size="17" font-weight="600" fill="#1f2328" text-anchor="middle">Granola desktop app</text>
+  <text x="996" y="160" font-size="14.5" fill="#cf222e" text-anchor="middle" font-weight="600">REVOKE the old key</text>
+  <text x="996" y="182" font-size="13" fill="#57606a" text-anchor="middle">anything that leaked is now dead</text>
+
+  <!-- repeat loop -->
+  <path d="M996,200 C996,252 205,252 205,200" stroke="#8c959f" stroke-width="2" stroke-dasharray="7 5" fill="none"/>
+  <path d="M205,206 l-6,12 h12 z" fill="#8c959f"/>
+  <text x="600" y="262" font-size="14" fill="#57606a" text-anchor="middle" font-weight="600">repeat monthly – nothing else changes</text>
+
+  <!-- timeline -->
+  <text x="40" y="310" font-size="16" font-weight="600" fill="#57606a">What the monthly cadence buys: a worst-case window, not an open-ended one</text>
+
+  <!-- bar: day 0 at x=40, day 31 at x=1160; px/day = 36.13 -->
+  <rect x="40" y="352" width="108" height="26" fill="#dafbe1" stroke="#2da44e"/>
+  <rect x="148" y="352" width="1012" height="26" fill="#ffebe9" stroke="#cf222e"/>
+
+  <!-- day 0 tick -->
+  <line x1="40" y1="344" x2="40" y2="386" stroke="#1f2328" stroke-width="2"/>
+  <text x="40" y="412" font-size="13.5" fill="#1f2328" text-anchor="start" font-weight="600">day 0 – new key</text>
+
+  <!-- day 3 leak -->
+  <line x1="148" y1="344" x2="148" y2="430" stroke="#cf222e" stroke-width="2.5"/>
+  <circle cx="148" cy="336" r="11" fill="#cf222e"/>
+  <text x="148" y="341" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">!</text>
+  <text x="160" y="440" font-size="13.5" fill="#cf222e" text-anchor="start" font-weight="600">day 3 – silent leak, nobody notices</text>
+
+  <!-- exposure window annotation -->
+  <text x="654" y="370" font-size="14" fill="#82071e" text-anchor="middle" font-weight="700">exposed – at most 28 more days</text>
+
+  <!-- day 31 tick -->
+  <line x1="1160" y1="344" x2="1160" y2="386" stroke="#1f2328" stroke-width="2"/>
+  <text x="1160" y="412" font-size="13.5" fill="#1f2328" text-anchor="end" font-weight="600">day 31 – rotation kills the leaked key,</text>
+  <text x="1160" y="432" font-size="13.5" fill="#1f2328" text-anchor="end" font-weight="600">whether you noticed or not</text>
+
+  <!-- footer -->
+  <rect x="40" y="472" width="1120" height="94" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="66" y="502" font-size="15" fill="#1f2328" font-weight="600">Rotation is not the control – it's the parameter: it sets the maximum width of the exposure window.</text>
+  <text x="66" y="527" font-size="14" fill="#57606a">External key management is what makes monthly rotation cheap enough to actually happen.</text>
+  <text x="66" y="550" font-size="14" fill="#57606a">Reminders: a recurring calendar entry, or 1Password's item expiry notifications (Bitwarden has no per-item expiry alerts – use an external reminder).</text>
+</svg>

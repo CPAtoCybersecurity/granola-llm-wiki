@@ -136,6 +136,8 @@ what makes monthly rotation cheap enough to actually happen: generate a new key 
 the Granola app, paste it into the 1Password or Bitwarden item, revoke the old one.
 One field edit, every machine picks it up, nothing else changes.
 
+![Monthly rotation: generate a new key in the Granola app, paste it into the key manager item, revoke the old key; timeline showing a day-3 silent leak dying at the day-31 rotation, an exposure window of at most 28 days](docs/key-rotation.png)
+
 Set a recurring reminder, or use 1Password's built-in item expiry notifications
 (Bitwarden has no per-item expiry alerts – use an external reminder).
 
