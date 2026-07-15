@@ -1,5 +1,11 @@
 # Granola LLM Wiki – Demo
 
+![The demo wiki open in Obsidian's graph view: meetings, people, and projects as linked nodes](docs/granola-llm-wiki.png)
+
+*This is where the walkthrough below ends: the demo wiki open in Obsidian's graph
+view. Every meeting, person, and project is a page, and the cross-references are
+already there.*
+
 > **Demonstration repo with fictional data.** Every transcript, person, and company in
 > here is invented (meet the security team at "Coastal Ridge Insurance"). The schema,
 > tooling, and workflow are real – fork privately to use them with your own meetings.
@@ -12,22 +18,6 @@ security-team meetings, fully ingested and fanned out, plus a fourth left for yo
 ingest yourself.
 
 **Obsidian is the IDE, the LLM is the programmer, `wiki/` is the codebase.**
-
-## Credits
-
-This project stands on two sources, credited for different things:
-
-- **Concept:** Andrej Karpathy's ["LLM Wiki"](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-  (April 2026) – the idea that an LLM should build and *maintain* a persistent,
-  interlinked knowledge base rather than re-retrieve raw documents per query. In his
-  words: "The wiki is a persistent, compounding artifact. The cross-references are
-  already there." and "You never (or rarely) write the wiki yourself—the LLM writes
-  and maintains all of it."
-- **Walkthrough reference:** ["I Turned Claude Into the Ultimate Second Brain"](https://www.youtube.com/watch?v=8QQ_INxAhRs)
-  by Nate Herk (AI Automation) – a practical build of the same pattern.
-- Also: [Granola](https://www.granola.ai) for the meeting transcription layer, and
-  Tiago Forte's [PARA method](https://fortelabs.com/blog/para/) for the organizing
-  scheme.
 
 ## What this demonstrates
 
@@ -48,46 +38,158 @@ Two lessons in one artifact:
 Bonus: the fictional meetings are themselves security case studies – phishing metrics,
 a SOC 2 vendor review, and a shadow-AI cleanup.
 
-## Quickstart (zero credentials)
+## What you'll need
 
-Prerequisites: [bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`) and,
-for the full experience, [Obsidian](https://obsidian.md). If you just installed bun,
-open a new terminal (or `source ~/.zshrc`) and confirm with `bun --version` before
-continuing. Note: `[[wikilinks]]` are clickable in Obsidian, not on GitHub's file
-viewer.
+- A Mac or Windows PC (Linux works too – follow the Mac steps) and ~15 minutes
+- **No Granola account and no API key** – the demo runs entirely offline on the
+  bundled fictional data
+- Three free tools, installed as part of the walkthrough: [bun](https://bun.sh)
+  (runs the fetch tool), [git](https://git-scm.com) (downloads this repo), and
+  [Obsidian](https://obsidian.md) (browses the wiki)
+
+Pick your platform and type each command exactly as shown, pressing Enter after each.
+
+## Step by step – macOS
+
+Open **Terminal** (Applications → Utilities → Terminal, or Spotlight-search
+"Terminal").
+
+**1. Install bun:**
+
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+Close that terminal, open a **new** one, and confirm the install:
+
+```
+bun --version
+```
+
+Any version number means success.
+
+**2. Confirm git is installed:**
+
+```
+git --version
+```
+
+If macOS offers to install the Command Line Tools, accept, wait for it to finish,
+then run `git --version` again.
+
+**3. Download this repo and step into it:**
 
 ```
 git clone https://github.com/CPAtoCybersecurity/granola-llm-wiki
 cd granola-llm-wiki
+```
+
+**4. List the bundled demo meetings** (offline – nothing leaves your machine):
+
+```
 bun tools/granola-fetch.ts list --sample
 ```
 
-Then open the `wiki/` folder as an Obsidian vault and browse.
+**5. Fetch the exercise meeting**, copying the id printed by step 4:
 
-### Troubleshooting
+```
+bun tools/granola-fetch.ts fetch --sample demo-2026-06-23-tabletop-debrief
+```
 
-None of these are bugs – they're the four ways a fresh setup usually trips:
+This writes a fourth transcript into `raw/transcripts/` – the one meeting nobody
+has ingested into the wiki yet.
 
-- **`bun: command not found`** – the installer added bun to your PATH, but your current
-  terminal hasn't picked it up. Open a new terminal (or `source ~/.zshrc`) and check
-  `bun --version`. Still not found? Run the install one-liner above, then open a new
-  terminal.
-- **`Module not found "tools/granola-fetch.ts"`** – you're in the wrong directory. Run
-  `pwd` and confirm you're in the folder that contains `tools/` and `wiki/`. A classic
-  cause: cloning into a folder already named `granola-llm-wiki`, which nests the repo
-  one level down (`granola-llm-wiki/granola-llm-wiki`) – `cd` into the inner one.
-- **`usage: fetch --sample <id>`** – `fetch` needs a meeting id. Run
-  `bun tools/granola-fetch.ts list --sample` first and copy the id it prints
-  (`demo-2026-06-23-tabletop-debrief`) into the fetch command.
-- **`self signed certificate in certificate chain`** (or any certificate error,
-  usually on a work network) – your network inspects TLS: it re-signs HTTPS with
-  your organization's root certificate, which bun doesn't trust by default even
-  though your browser does. Trust the root instead of weakening TLS: run
-  `bun --use-system-ca tools/granola-fetch.ts check` (uses the OS trust store,
-  where IT installed the root) or set `NODE_EXTRA_CA_CERTS=/path/to/corp-root.pem`.
-  On a home network, take the error at face value instead – the certificate may
-  genuinely be bad. Never set `NODE_TLS_REJECT_UNAUTHORIZED=0` – that disables
-  verification for everything. More in [SECURITY.md](SECURITY.md).
+**6. Install Obsidian and open the wiki.** Download it from
+[obsidian.md](https://obsidian.md) (or `brew install --cask obsidian` if you use
+Homebrew). In Obsidian choose **Open folder as vault** and pick the `wiki` folder
+*inside* `granola-llm-wiki`. Click the graph icon in the left sidebar – you're
+looking at the picture at the top of this page. `[[Wikilinks]]` are clickable
+here, not on GitHub's file viewer.
+
+**7. (Optional) Run the LLM exercise.** Open your coding agent – Claude Code, or
+any agent that reads `CLAUDE.md` – in the `granola-llm-wiki` folder and say:
+
+> ingest the new transcript in raw/transcripts/ per CLAUDE.md
+
+Watch it write the meeting page, update three people pages, touch two projects, and
+log the operation. That fan-out is the whole idea. (Terminology: the tool's verb is
+`fetch` – it pulls one transcript into `raw/`. "Ingest" means the full wiki
+operation: fetch + the LLM fan-out.)
+
+## Step by step – Windows
+
+Same journey in **PowerShell** (Start menu → type "PowerShell" → Enter – not the
+old Command Prompt; several commands below are PowerShell-only). Requires
+Windows 10 version 1809 or later.
+
+**1. Install bun** (this runs Bun's official installer):
+
+```
+irm bun.sh/install.ps1 | iex
+```
+
+Close that window, open a **new** PowerShell, and confirm the install:
+
+```
+bun --version
+```
+
+Any version number means success.
+
+**2. Install git** (skip if `git --version` already answers):
+
+```
+winget install --id Git.Git -e
+```
+
+The first `winget` run may ask you to accept source agreements – press Y. If
+`winget` itself isn't recognized (older Windows 10), install **App Installer**
+from the Microsoft Store, or download git directly from
+[git-scm.com](https://git-scm.com/download/win). Then close and reopen PowerShell
+so git lands on your PATH, and check `git --version`.
+
+**3. Download this repo and step into it:**
+
+```
+git clone https://github.com/CPAtoCybersecurity/granola-llm-wiki
+cd granola-llm-wiki
+```
+
+**4. List the bundled demo meetings** (offline – nothing leaves your machine):
+
+```
+bun tools/granola-fetch.ts list --sample
+```
+
+**5. Fetch the exercise meeting**, copying the id printed by step 4:
+
+```
+bun tools/granola-fetch.ts fetch --sample demo-2026-06-23-tabletop-debrief
+```
+
+This writes a fourth transcript into `raw\transcripts\` – the one meeting nobody
+has ingested into the wiki yet.
+
+**6. Install Obsidian and open the wiki:**
+
+```
+winget install --id Obsidian.Obsidian -e
+```
+
+(or download from [obsidian.md](https://obsidian.md)). In Obsidian choose
+**Open folder as vault** and pick the `wiki` folder *inside* `granola-llm-wiki`.
+Click the graph icon in the left sidebar – you're looking at the picture at the
+top of this page. `[[Wikilinks]]` are clickable here, not on GitHub's file viewer.
+
+**7. (Optional) Run the LLM exercise.** Open your coding agent – Claude Code, or
+any agent that reads `CLAUDE.md` – in the `granola-llm-wiki` folder and say:
+
+> ingest the new transcript in raw/transcripts/ per CLAUDE.md
+
+Watch it write the meeting page, update three people pages, touch two projects, and
+log the operation. That fan-out is the whole idea. (Terminology: the tool's verb is
+`fetch` – it pulls one transcript into `raw/`. "Ingest" means the full wiki
+operation: fetch + the LLM fan-out.)
 
 ## Guided tour (3 stops, ~5 minutes)
 
@@ -101,24 +203,32 @@ None of these are bugs – they're the four ways a fresh setup usually trips:
    compiled across meetings: assignments, delivery, open threads. Ask "what is Sam
    working on?" and this page *is* the answer.
 
-## Now you try
+## Troubleshooting
 
-A fourth fictional meeting ships in `samples/`, deliberately not yet integrated. Run
-`bun tools/granola-fetch.ts list --sample` and copy the id it prints into the fetch
-command:
+None of these are bugs – they're the four ways a fresh setup usually trips:
 
-```
-bun tools/granola-fetch.ts fetch --sample demo-2026-06-23-tabletop-debrief
-```
-
-(The tool's verb is `fetch` – it pulls one transcript into `raw/`. "Ingest" in this
-repo means the full wiki operation: fetch + the LLM fan-out. `ingest` still works
-as a command alias.)
-
-Then ask your LLM (Claude Code, or any agent that reads `CLAUDE.md`): *"ingest the new
-transcript in raw/transcripts/ per CLAUDE.md."* Watch it write the meeting page, update
-three people pages, touch two projects, and log the operation. That fan-out is the
-whole idea.
+- **`bun: command not found`** (Windows: **`bun : The term 'bun' is not
+  recognized`**) – the installer added bun to your PATH, but your current terminal
+  hasn't picked it up. Open a new terminal (on macOS, `source ~/.zshrc` also works)
+  and check `bun --version`. Still not found? Re-run the install command from step 1,
+  then open a new terminal.
+- **`Module not found "tools/granola-fetch.ts"`** – you're in the wrong directory. Run
+  `pwd` (works in PowerShell too) and confirm you're in the folder that contains
+  `tools/` and `wiki/`. A classic cause: cloning into a folder already named
+  `granola-llm-wiki`, which nests the repo one level down
+  (`granola-llm-wiki/granola-llm-wiki`) – `cd` into the inner one.
+- **`usage: fetch --sample <id>`** – `fetch` needs a meeting id. Run
+  `bun tools/granola-fetch.ts list --sample` first and copy the id it prints
+  (`demo-2026-06-23-tabletop-debrief`) into the fetch command.
+- **`self signed certificate in certificate chain`** (or any certificate error,
+  usually on a work network) – your network inspects TLS: it re-signs HTTPS with
+  your organization's root certificate, which bun doesn't trust by default even
+  though your browser does. Trust the root instead of weakening TLS: run
+  `bun --use-system-ca tools/granola-fetch.ts check` (uses the OS trust store,
+  where IT installed the root) or set `NODE_EXTRA_CA_CERTS=/path/to/corp-root.pem`.
+  On a home network, take the error at face value instead – the certificate may
+  genuinely be bad. Never set `NODE_TLS_REJECT_UNAUTHORIZED=0` – that disables
+  verification for everything. More in [SECURITY.md](SECURITY.md).
 
 ## Using your real Granola account
 
@@ -136,9 +246,10 @@ The tool reads `op://Private/Granola/credential` automatically (override via
 
 ```
 # one-time: install the CLI and wire it to the desktop app
-brew install 1password-cli
+brew install 1password-cli                       # macOS
+winget install --id AgileBits.1Password.CLI -e   # Windows
 # 1Password app → Settings → Developer → turn on "Integrate with 1Password CLI"
-#   (optionally enable Touch ID there too)
+#   (optionally enable Touch ID / Windows Hello there too)
 op whoami        # confirms sign-in – prompts via the app if needed
 
 # store: in the 1Password app, create an item "Granola" in vault "Private"
@@ -158,29 +269,41 @@ through its `GRANOLA_API_KEY` environment slot. Nothing lands on disk.
 
 ```
 # one-time: install and sign in
-brew install bitwarden-cli
+brew install bitwarden-cli                   # macOS
+bun install -g @bitwarden/cli                # any platform (incl. Windows)
 bw config server https://vault.example.com   # self-hosted only – skip for bitwarden.com
 bw login                                     # email + master password (+ 2FA)
 
 # store: in the Bitwarden app or web vault, create a Login item named
 # "Granola" and paste the key into its password field
 
-# each session: unlock, run, lock
+# each session (macOS/Linux): unlock, run, lock
 export BW_SESSION="$(bw unlock --raw)"
 GRANOLA_API_KEY="$(bw get password Granola)" bun tools/granola-fetch.ts check
 bw lock
 ```
 
-Optional convenience for your `~/.zshrc`. The single quotes are load-bearing:
-they defer the lookup, so the key is resolved fresh on every call and never
-touches disk. With double quotes the lookup would run once at shell startup and
-bake the key into your environment:
+On Windows, PowerShell has no per-command environment prefix, so set the variable,
+run the tool, then remove it:
+
+```powershell
+$env:BW_SESSION = bw unlock --raw
+$env:GRANOLA_API_KEY = bw get password Granola
+bun tools/granola-fetch.ts check
+Remove-Item Env:GRANOLA_API_KEY
+bw lock
+```
+
+Optional convenience for your `~/.zshrc` (macOS/Linux). The single quotes are
+load-bearing: they defer the lookup, so the key is resolved fresh on every call and
+never touches disk. With double quotes the lookup would run once at shell startup
+and bake the key into your environment:
 
 ```
 alias granola='GRANOLA_API_KEY="$(bw get password Granola)" bun tools/granola-fetch.ts'
 ```
 
-### Option 3 – macOS Keychain (local fallback)
+### Option 3 – macOS Keychain (macOS only, local fallback)
 
 ```
 security add-generic-password -a "$USER" -s granola-api-key -w
@@ -204,8 +327,25 @@ why and how.
 - `wiki/` – the wiki (Obsidian vault): `Meetings/` → `Projects/ Areas/ Resources/ Archive/ People/`
 - `wiki/index.md` – catalog · `wiki/log.md` – operation timeline
 - `tools/granola-fetch.ts` – secure fetch (1Password CLI → Keychain → .env) + sample mode
+- `docs/` – README images
 - `CLAUDE.md` – **the schema the LLM follows every session** (start there)
 - `SECURITY.md` – key management policy, rotation, leak runbook
+
+## Credits
+
+This project stands on two sources, credited for different things:
+
+- **Concept:** Andrej Karpathy's ["LLM Wiki"](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+  (April 2026) – the idea that an LLM should build and *maintain* a persistent,
+  interlinked knowledge base rather than re-retrieve raw documents per query. In his
+  words: "The wiki is a persistent, compounding artifact. The cross-references are
+  already there." and "You never (or rarely) write the wiki yourself—the LLM writes
+  and maintains all of it."
+- **Walkthrough reference:** ["I Turned Claude Into the Ultimate Second Brain"](https://www.youtube.com/watch?v=8QQ_INxAhRs)
+  by Nate Herk (AI Automation) – a practical build of the same pattern.
+- Also: [Granola](https://www.granola.ai) for the meeting transcription layer, and
+  Tiago Forte's [PARA method](https://fortelabs.com/blog/para/) for the organizing
+  scheme.
 
 ## License
 

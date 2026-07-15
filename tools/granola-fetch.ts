@@ -36,13 +36,16 @@
 
 import { spawnSync } from "bun";
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, copyFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const API_BASE = process.env.GRANOLA_API_BASE ?? "https://public-api.granola.ai/v1";
 const OP_REF = process.env.GRANOLA_OP_REF ?? "op://Private/Granola/credential";
 const KEYCHAIN_SERVICE = process.env.GRANOLA_KEYCHAIN_SERVICE ?? "granola-api-key";
-const RAW_DIR = new URL("../raw/transcripts/", import.meta.url).pathname;
-const SAMPLES_DIR = new URL("../samples/", import.meta.url).pathname;
-const MEETINGS_DIR = new URL("../wiki/Meetings/", import.meta.url).pathname;
+// fileURLToPath, not URL.pathname: pathname yields "/C:/..." on Windows and
+// percent-encodes spaces, both of which break fs calls.
+const RAW_DIR = fileURLToPath(new URL("../raw/transcripts/", import.meta.url));
+const SAMPLES_DIR = fileURLToPath(new URL("../samples/", import.meta.url));
+const MEETINGS_DIR = fileURLToPath(new URL("../wiki/Meetings/", import.meta.url));
 
 // --- key resolution (never logged) ------------------------------------------
 
@@ -74,7 +77,7 @@ function keyFromKeychain(): string | null {
 
 function keyFromDotEnv(): string | null {
   try {
-    const p = new URL("../.env", import.meta.url).pathname;
+    const p = fileURLToPath(new URL("../.env", import.meta.url));
     const txt = readFileSync(p, "utf8");
     const m = txt.match(/^\s*GRANOLA_API_KEY\s*=\s*(.+)\s*$/m);
     return m ? m[1].trim().replace(/^["']|["']$/g, "") : null;
