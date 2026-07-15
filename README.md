@@ -76,9 +76,9 @@ None of these are bugs – they're the three ways a fresh setup usually trips:
   `pwd` and confirm you're in the folder that contains `tools/` and `wiki/`. A classic
   cause: cloning into a folder already named `granola-llm-wiki`, which nests the repo
   one level down (`granola-llm-wiki/granola-llm-wiki`) – `cd` into the inner one.
-- **`usage: ingest --sample <id>`** – `ingest` needs a meeting id. Run
+- **`usage: fetch --sample <id>`** – `fetch` needs a meeting id. Run
   `bun tools/granola-fetch.ts list --sample` first and copy the id it prints
-  (`demo-2026-06-23-tabletop-debrief`) into the ingest command.
+  (`demo-2026-06-23-tabletop-debrief`) into the fetch command.
 
 ## Guided tour (3 stops, ~5 minutes)
 
@@ -95,12 +95,16 @@ None of these are bugs – they're the three ways a fresh setup usually trips:
 ## Now you try
 
 A fourth fictional meeting ships in `samples/`, deliberately not yet integrated. Run
-`bun tools/granola-fetch.ts list --sample` and copy the id it prints into the ingest
+`bun tools/granola-fetch.ts list --sample` and copy the id it prints into the fetch
 command:
 
 ```
-bun tools/granola-fetch.ts ingest --sample demo-2026-06-23-tabletop-debrief
+bun tools/granola-fetch.ts fetch --sample demo-2026-06-23-tabletop-debrief
 ```
+
+(The tool's verb is `fetch` – it pulls one transcript into `raw/`. "Ingest" in this
+repo means the full wiki operation: fetch + the LLM fan-out. `ingest` still works
+as a command alias.)
 
 Then ask your LLM (Claude Code, or any agent that reads `CLAUDE.md`): *"ingest the new
 transcript in raw/transcripts/ per CLAUDE.md."* Watch it write the meeting page, update
@@ -180,8 +184,9 @@ security add-generic-password -a "$USER" -s granola-api-key -w
 Gitignored but plaintext on disk – see `.env.example`. Prefer any option above.
 
 Whichever store you use: verify with `bun tools/granola-fetch.ts check`, then
-`list` and `ingest <note_id>`. Rotate the key monthly; [SECURITY.md](SECURITY.md)
-explains why and how.
+`list` and `fetch <note_id>` (several ids at once, or `fetch --since YYYY-MM-DD`
+to pull a backlog). Rotate the key monthly; [SECURITY.md](SECURITY.md) explains
+why and how.
 
 ## Layout
 

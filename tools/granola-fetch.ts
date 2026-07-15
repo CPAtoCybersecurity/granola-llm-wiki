@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * granola-fetch.ts — secure ingest from the Granola API into raw/transcripts/,
+ * granola-fetch.ts — secure fetch from the Granola API into raw/transcripts/,
  * plus an offline --sample mode so the demo works with zero credentials.
  *
  * The API key NEVER appears in argv, chat, logs, commits, or URLs.
@@ -16,12 +16,17 @@
  * same reference works across machines. See SECURITY.md for the full argument.
  *
  * Usage:
- *   bun tools/granola-fetch.ts list --sample        # list bundled fictional demo meetings
- *   bun tools/granola-fetch.ts ingest --sample <id> # copy a demo meeting into raw/transcripts/
- *   bun tools/granola-fetch.ts check                # verify auth (never prints the key)
- *   bun tools/granola-fetch.ts list [--limit N]     # list your recent meeting notes
- *   bun tools/granola-fetch.ts get <note_id>        # print one note's JSON (key-redacted)
- *   bun tools/granola-fetch.ts ingest <note_id>     # write raw/transcripts/<date>-<slug>.{json,md}
+ *   bun tools/granola-fetch.ts list --sample         # list bundled fictional demo meetings
+ *   bun tools/granola-fetch.ts fetch --sample <id>   # copy a demo meeting into raw/transcripts/
+ *   bun tools/granola-fetch.ts check                 # verify auth (never prints the key)
+ *   bun tools/granola-fetch.ts list [--limit N] [--cursor C]  # list your recent meeting notes
+ *   bun tools/granola-fetch.ts get <note_id>         # print one note's JSON (key-redacted)
+ *   bun tools/granola-fetch.ts fetch <note_id>...    # write raw/transcripts/<date>-<slug>.{json,md}
+ *   bun tools/granola-fetch.ts fetch --since YYYY-MM-DD  # bulk-fetch every note on/after a date
+ *
+ * `ingest` is accepted as an alias of `fetch` for back-compat. In this repo's
+ * docs, "ingest" means the full wiki operation (fetch + LLM fan-out, per
+ * CLAUDE.md); this tool only does the fetch step.
  *
  * Config (env, all optional):
  *   GRANOLA_OP_REF            default op://Private/Granola/credential
@@ -37,6 +42,7 @@ const OP_REF = process.env.GRANOLA_OP_REF ?? "op://Private/Granola/credential";
 const KEYCHAIN_SERVICE = process.env.GRANOLA_KEYCHAIN_SERVICE ?? "granola-api-key";
 const RAW_DIR = new URL("../raw/transcripts/", import.meta.url).pathname;
 const SAMPLES_DIR = new URL("../samples/", import.meta.url).pathname;
+const MEETINGS_DIR = new URL("../wiki/Meetings/", import.meta.url).pathname;
 
 // --- key resolution (never logged) ------------------------------------------
 
@@ -115,7 +121,7 @@ function cmdSampleList() {
   if (notes.length === 0) { console.log("No bundled samples found in samples/."); return; }
   console.log("Bundled demo meetings (fictional — no API key needed):\n");
   for (const n of notes) console.log(`${n.date}  ${n.id.padEnd(32)}  ${n.title}`);
-  console.log(`\nNext: bun tools/granola-fetch.ts ingest --sample <id>`);
+  console.log(`\nNext: bun tools/granola-fetch.ts fetch --sample <id>`);
 }
 
 function cmdSampleIngest(id: string) {
@@ -144,7 +150,13 @@ async function api(path: string, key: string): Promise<any> {
   });
   if (!res.ok) {
     const body = redact(await res.text().catch(() => ""), key);
-    throw new Error(`${res.status} ${res.statusText} on ${path}\n${body.slice(0, 500)}`);
+    let hint = "";
+    if (res.status === 404 && path.startsWith("/notes")) {
+      hint = "\nHint: a persistent 404 with a valid key usually means the API base/path changed — override with GRANOLA_API_BASE.";
+    } else if (res.status === 403) {
+      hint = "\nHint: a 403 with an HTML body is usually bot/IP protection in front of the API, not a bad key — try from your normal network.";
+    }
+    throw new Error(`${res.status} ${res.statusText} on ${path}\n${body.slice(0, 500)}${hint}`);
   }
   return res.json();
 }
@@ -157,18 +169,29 @@ function slugify(s: string): string {
 
 function noteDate(note: any): string {
   const d = note?.created_at ?? note?.date ?? note?.updated_at;
-  return d ? new Date(d).toISOString().slice(0, 10) : "undated";
+  if (!d) return "undated";
+  const t = new Date(d);
+  return isNaN(+t) ? "undated" : t.toISOString().slice(0, 10); // normalized ISO, so lexical compare == chronological
 }
+
+const TRANSCRIPT_FIELDS = ["transcript", "transcript_text", "notes", "content"];
 
 /** Best-effort extraction of a readable transcript. Granola's shape may vary —
  *  we always keep the full .json, so nothing is lost if this misses a field. */
+function extractTranscript(note: any): string | null {
+  for (const f of TRANSCRIPT_FIELDS) {
+    const v = note?.[f];
+    if (v) return typeof v === "string" ? v : JSON.stringify(v, null, 2);
+  }
+  return null;
+}
+
 function toMarkdown(note: any): string {
   const title = note?.title ?? note?.name ?? "Untitled meeting";
   const date = noteDate(note);
   const attendees: string[] = (note?.attendees ?? note?.people ?? [])
     .map((a: any) => (typeof a === "string" ? a : a?.name ?? a?.email)).filter(Boolean);
-  const transcript = note?.transcript ?? note?.transcript_text ?? note?.notes ?? note?.content ?? "";
-  const body = typeof transcript === "string" ? transcript : JSON.stringify(transcript, null, 2);
+  const body = extractTranscript(note) ?? "";
   return [
     `# ${title}`,
     ``,
@@ -183,6 +206,20 @@ function toMarkdown(note: any): string {
   ].filter((l) => l !== undefined).join("\n");
 }
 
+/** CLAUDE.md rule: never re-ingest a granola_id already in wiki/Meetings/.
+ *  Raw refetch is harmless (same source), so we warn instead of blocking. */
+function wikiPageFor(id: string): string | null {
+  const esc = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`^granola_id:\\s*["']?${esc}["']?\\s*$`, "m"); // exact frontmatter value, not substring
+  try {
+    for (const f of readdirSync(MEETINGS_DIR)) {
+      if (!f.endsWith(".md")) continue;
+      if (re.test(readFileSync(`${MEETINGS_DIR}${f}`, "utf8"))) return f;
+    }
+  } catch { /* no wiki yet */ }
+  return null;
+}
+
 // --- commands -----------------------------------------------------------------
 
 async function cmdCheck(key: string) {
@@ -190,14 +227,15 @@ async function cmdCheck(key: string) {
   console.log("OK — authenticated to Granola. Key resolved and valid. (key not shown)");
 }
 
-async function cmdList(key: string, limit: number) {
-  const data = await api(`/notes?limit=${limit}`, key);
+async function cmdList(key: string, limit: number, cursor?: string) {
+  const q = `/notes?limit=${limit}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`;
+  const data = await api(q, key);
   const notes: any[] = data?.notes ?? data?.data ?? data ?? [];
   if (!Array.isArray(notes) || notes.length === 0) { console.log("No notes returned."); return; }
   for (const n of notes) {
     console.log(`${noteDate(n)}  ${String(n?.id ?? "?").padEnd(24)}  ${n?.title ?? n?.name ?? "(untitled)"}`);
   }
-  if (data?.next_cursor) console.log(`\n(next_cursor: ${data.next_cursor})`);
+  if (data?.next_cursor) console.log(`\n(more available — rerun with --cursor ${data.next_cursor})`);
 }
 
 async function cmdGet(key: string, id: string) {
@@ -205,14 +243,53 @@ async function cmdGet(key: string, id: string) {
   console.log(redact(JSON.stringify(note, null, 2), key));
 }
 
-async function cmdIngest(key: string, id: string) {
+async function cmdFetchOne(key: string, id: string) {
+  const page = wikiPageFor(id);
+  if (page) {
+    console.error(`Note: granola_id ${id} is already integrated into the wiki (wiki/Meetings/${page}).`);
+    console.error(`CLAUDE.md rule: don't re-ingest — cross-reference. Refetching the raw transcript anyway.`);
+  }
   const note = await api(`/notes/${encodeURIComponent(id)}`, key);
   mkdirSync(RAW_DIR, { recursive: true });
   const base = `${noteDate(note)}-${slugify(note?.title ?? note?.name)}`;
+  if (existsSync(`${RAW_DIR}${base}.json`)) console.log(`(overwriting existing raw/transcripts/${base}.json)`);
   writeFileSync(`${RAW_DIR}${base}.json`, JSON.stringify(note, null, 2));
   writeFileSync(`${RAW_DIR}${base}.md`, toMarkdown(note));
+  if (extractTranscript(note) === null) {
+    console.error(
+      `Warning: no transcript-like field found on note ${id} (tried: ${TRANSCRIPT_FIELDS.join(", ")}).\n` +
+      `The full JSON is saved, but the .md body is empty. Please open a GitHub issue naming the\n` +
+      `field your account's payload uses (field names only — no meeting content).`,
+    );
+  }
   console.log(`Wrote:\n  raw/transcripts/${base}.json\n  raw/transcripts/${base}.md`);
   console.log(`\nNext: read the transcript, then create wiki/Meetings/${base}.md and fan out per CLAUDE.md.`);
+}
+
+async function cmdFetchSince(key: string, since: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) throw new Error("usage: fetch --since YYYY-MM-DD");
+  // No early-stop on "page looks too old": the API's sort order isn't a documented
+  // guarantee, and an optimization that can silently drop notes isn't worth it.
+  // The page cap bounds cost instead — and warns when it truncates.
+  const ids: string[] = [];
+  const MAX_PAGES = 20;
+  let cursor: string | undefined;
+  for (let pageN = 0; pageN < MAX_PAGES; pageN++) {
+    const q = `/notes?limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`;
+    const data = await api(q, key);
+    const notes: any[] = data?.notes ?? data?.data ?? [];
+    if (!Array.isArray(notes) || notes.length === 0) { cursor = undefined; break; }
+    for (const n of notes) if (n?.id && noteDate(n) >= since) ids.push(String(n.id));
+    const next: string | undefined = data?.next_cursor;
+    if (!next || next === cursor) { cursor = undefined; break; } // done, or a stuck cursor
+    cursor = next;
+  }
+  if (cursor) {
+    console.error(`Warning: stopped after ${MAX_PAGES} pages with more results pending — the sweep may be incomplete. Rerun with a narrower --since, or continue manually via list --cursor.`);
+  }
+  if (ids.length === 0) { console.log(`No notes on/after ${since}.`); return; }
+  console.log(`Fetching ${ids.length} note(s) since ${since}…\n`);
+  for (const id of ids) await cmdFetchOne(key, id);
 }
 
 // --- main ----------------------------------------------------------------------
@@ -220,10 +297,16 @@ async function cmdIngest(key: string, id: string) {
 async function main() {
   const args = process.argv.slice(2);
   const sample = args.includes("--sample");
-  const [cmd, ...rest] = args.filter((a) => a !== "--sample");
+  const positional = args.filter((a) => a !== "--sample");
+  const invoked = positional[0]; // echo the verb the user actually typed in usage errors
+  let [cmd, ...rest] = positional;
+  if (cmd === "ingest") cmd = "fetch"; // deprecated transitional alias — docs reserve "ingest" for the wiki operation
 
-  if (!cmd || !["check", "list", "get", "ingest"].includes(cmd)) {
-    console.log("commands: check | list [--limit N] [--sample] | get <id> | ingest <id> | ingest --sample <id>");
+  if (!cmd || !["check", "list", "get", "fetch"].includes(cmd)) {
+    console.log(
+      "commands: check | list [--limit N] [--cursor C] [--sample] | get <id> |\n" +
+      "          fetch <id>... | fetch --since YYYY-MM-DD | fetch --sample <id>   (ingest = alias of fetch)",
+    );
     process.exit(cmd ? 1 : 0);
   }
 
@@ -231,12 +314,12 @@ async function main() {
   if (sample) {
     switch (cmd) {
       case "list": return cmdSampleList();
-      case "ingest": {
-        if (!rest[0]) { console.error("usage: ingest --sample <id>"); process.exit(1); }
+      case "fetch": {
+        if (!rest[0]) { console.error(`usage: ${invoked} --sample <id>`); process.exit(1); }
         return cmdSampleIngest(rest[0]);
       }
       default:
-        console.error(`--sample only supports list and ingest.`);
+        console.error(`--sample only supports list and fetch.`);
         process.exit(1);
     }
   }
@@ -247,15 +330,20 @@ async function main() {
       case "check": return await cmdCheck(key);
       case "list": {
         const li = rest.indexOf("--limit");
-        return await cmdList(key, li >= 0 ? Number(rest[li + 1]) || 20 : 20);
+        const ci = rest.indexOf("--cursor");
+        return await cmdList(key, li >= 0 ? Number(rest[li + 1]) || 20 : 20, ci >= 0 ? rest[ci + 1] : undefined);
       }
       case "get": {
         if (!rest[0]) throw new Error("usage: get <note_id>");
         return await cmdGet(key, rest[0]);
       }
-      case "ingest": {
-        if (!rest[0]) throw new Error("usage: ingest <note_id>");
-        return await cmdIngest(key, rest[0]);
+      case "fetch": {
+        const si = rest.indexOf("--since");
+        if (si >= 0) return await cmdFetchSince(key, rest[si + 1] ?? "");
+        const ids = rest.filter((a) => !a.startsWith("--"));
+        if (ids.length === 0) throw new Error(`usage: ${invoked} <note_id>... | ${invoked} --since YYYY-MM-DD`);
+        for (const id of ids) await cmdFetchOne(key, id);
+        return;
       }
     }
   } catch (e: any) {

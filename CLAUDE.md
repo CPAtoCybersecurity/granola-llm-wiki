@@ -93,8 +93,13 @@ interested → Resource.
 
 ### Ingest – one meeting at a time (the default flow)
 
+> Terminology: **"ingest" is this whole operation** – fetch plus the LLM fan-out
+> below. The tool's verb for step 1 alone is `fetch` (it accepts `ingest` as a
+> back-compat alias, but it only ever does the fetch).
+
 1. **Fetch.** Offline demo: `bun tools/granola-fetch.ts list --sample` then
-   `ingest --sample <id>`. Real account (private fork): `list` then `ingest <note_id>`.
+   `fetch --sample <id>`. Real account (private fork): `list` then `fetch <note_id>`
+   (several ids at once, or `fetch --since YYYY-MM-DD` for a backlog).
    Fetching is the ONLY step that touches the network, and the key never enters chat.
 2. **Read the transcript fully.** Discuss key takeaways with the human if present.
 3. **Write the Meeting page** `wiki/Meetings/YYYY-MM-DD-<slug>.md` (frontmatter below):
